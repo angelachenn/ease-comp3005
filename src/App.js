@@ -29,7 +29,13 @@ const App = () => {
       console.error('Error during the request:', error);
     }
   };
-
+  const ResultComponent = ({ textWithNewlines }) => {
+    return (
+      <div style={{ whiteSpace: 'pre-line' }}>
+        {textWithNewlines}
+      </div>
+    );
+  };
   return (
     <div className="main-container">
       <h3>Execute relational algebra queries with</h3>
@@ -59,7 +65,7 @@ const App = () => {
       <div>
         <h2>Query Result</h2>
         {/* Display the result here */}
-        <p>{result}</p>
+        <ResultComponent textWithNewlines={result} />
       </div>
     </div>
   );

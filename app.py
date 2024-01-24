@@ -2,87 +2,65 @@
 
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
-import os, re
+import os
+
+from relational import relation, parser, rtypes
+from relational import maintenance
 
 app = Flask(__name__)
 CORS(app, resources={r"/execute_query": {"origins": "http://localhost:3000"}})
+ui = maintenance.UserInterface()
 
-# Your logic for parsing and executing queries here
-class Relation:
-    def __init__(self, name, attributes, tuples):
-        self.name = name
-        self.attributes = attributes
-        self.tuples = tuples
+def divide_chunks(l, n):  
+    # looping till length l 
+    for i in range(0, len(l), n):  
+        yield l[i:i + n] 
 
-def parse_relation(text):
-    # Extracting relation name, attributes, and tuples using regex
-    match = re.match(r'(\w+)\s*\(([^)]+)\)\s*=\s*{([^}]*)}', text)
-    
-    if match:
-        name = match.group(1)
-        attributes = [attr.strip() for attr in match.group(2).split(',')]
-        
-        # Parse tuples
-        tuples_text = match.group(3).split()
-        tuples = []
-        for tuple_text in tuples_text:
-            tuple_values = [value.strip() for value in tuple_text.split(',')]
-            tuples.append(dict(zip(attributes, tuple_values)))
+def replacements(query: str) -> str:
+    '''This function replaces ascii easy operators with the correct ones'''
+    rules = (
+        ('join', parser.JOIN),
+        ('left_join', parser.JOIN_LEFT),
+        ('right_join', parser.JOIN_RIGHT),
+        ('full_join', parser.JOIN_FULL),
+        ('project', parser.PROJECTION),
+        ('select', parser.SELECTION),
+        ('rename', parser.RENAME),
+    )
+    for asciiop, op in rules:
+        query = query.replace(asciiop, op)
+    return query
 
-        return Relation(name, attributes, tuples)
-    else:
-        raise ValueError("Invalid relation text")
-    
-def parse_query(query):
-    # Extracting operation, attributes, condition, and operands using regex
-    match = re.match(r'(\w+)\(([^)]+)(?:\s*([<>]=?|!=)\s*([^)]+))?\)', query)
-    print(query)
-    print(match)
-    if match:
-        operation = match.group(1).lower()
-        components = [comp.strip() for comp in match.group(2).split(',')]
-
-        if len(components) > 1:
-            # For operations with attributes and operands
-            attributes = components[0]
-            operands = components[1]
-        else:
-            # For operations without attributes (e.g., set operations)
-            attributes = None
-            operands = components[0]
-
-        condition_operator = match.group(3)
-        condition_value = match.group(4) if condition_operator else None
-
-        return (operation, attributes, condition_operator, condition_value, operands)
-    else:
-        raise ValueError("Invalid query text")
-
-
-def execute_query(operations, relations):
-    operation, operand = operations
-    relation = next((rel for rel in relations if rel.name == operand), None)
-
-    if operation == "select":
-        # Example: Select operation for Age > 30
-        result = [tuple for tuple in relation.tuples if tuple["Age"] > 30]
-        return result
-    else:
-        raise ValueError("Invalid operation")
+def create_relation(input):
+    placeholder = -1
+    for i in range(0, len(input)):
+        if input[i]=='}':
+            title = input[placeholder+1]
+            name = title[0:title.index(' ')]
+            attributes = title[title.index('(')+1:title.index(')')]
+            attributes = attributes.split(', ')
+            temp_relation = ", ".join(input[placeholder+2:i])
+            temp_relation = temp_relation.split(', ')
+            temp_relation = list(divide_chunks(temp_relation, len(attributes)))
+            placeholder = i
+            ui.set_relation(name, relation.Relation.create_from(attributes, temp_relation))
     
 @app.route('/')
 def index():
     return render_template('/public/index/html')  # This should point to your main HTML file
 
 @app.route('/execute_query', methods=['POST'])
-def execute_query():
+async def execute_query():
     # get the relation and query from webform
     relation_text = request.form['relation']
     query_text = request.form['query']
+    query_text = replacements(query_text)
+    input = relation_text.split('\n')
+    create_relation(input)
     
-    # parsing and execution logic
-    result=str(execute_query(parse_query(query_text), [parse_relation(relation_text)]))
-
+    pyquery = parser.parse(query_text)
+    result = pyquery(ui.relations)
+    result = result.pretty_string(tty=True)
     # return JSON result
     return jsonify(result), 200, {'Access-Control-Allow-Origin': 'http://localhost:3000'}
 
@@ -99,4 +77,4 @@ def serve_index(path):
     return send_from_directory(os.path.join(root_dir, 'ease', 'build'), 'index.html')
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
