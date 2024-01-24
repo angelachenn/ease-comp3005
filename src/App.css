@@ -1,0 +1,95 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+input {
+  width: 80%; /* Make the input take the full width of the container */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  resize: none; /* Disable resizing */
+  outline: none; /* Remove the default focus outline */
+  margin-bottom: 16px;
+}
+
+textarea {
+  width: 80%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  resize: vertical; /* Disable resizing */
+  outline: none; /* Remove the default focus outline */
+}
+
+/* Style for input placeholders (optional) */
+input::placeholder {
+  color: #999;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: bold;
+}
+
+/* Style for the "Execute Query" button */
+button {
+  background-color: #7aa1f1; /* Green background color */
+  color: white; /* White text color */
+  padding: 10px 20px; /* Padding for better appearance */
+  font-size: 16px; /* Font size */
+  font-weight: bold;
+  border: none; /* Remove border */
+  border-radius: 4px; /* Add border-radius for rounded corners */
+  cursor: pointer; /* Add a pointer cursor on hover */
+}
+
+/* Change button color on hover */
+button:hover {
+  background-color: #454ca0;
+}
+
+h3 {
+  color: #7aa1f1; /* Green background color */
+}
+
+.main-container {
+  margin-left: 2%;
+}
