@@ -28,6 +28,8 @@ def replacements(query: str) -> str:
         ('project', parser.PROJECTION),
         ('select', parser.SELECTION),
         ('rename', parser.RENAME),
+        ('union', parser.UNION),
+        ('intersect', parser.INTERSECTION)
     )
     for asciiop, op in rules:
         query = query.replace(asciiop, op)
