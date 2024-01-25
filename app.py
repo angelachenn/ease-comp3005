@@ -11,13 +11,15 @@ app = Flask(__name__)
 CORS(app, resources={r"/execute_query": {"origins": "http://localhost:3000"}})
 ui = maintenance.UserInterface()
 
+
 def divide_chunks(l, n):  
+    '''Helper string manipulation method to aid with massaging of user input'''
     # looping till length l 
     for i in range(0, len(l), n):  
         yield l[i:i + n] 
 
 def replacements(query: str) -> str:
-    '''This function replaces ascii easy operators with the correct ones'''
+    '''This function replaces ascii-easy operators with the correct ones'''
     rules = (
         ('join', parser.JOIN),
         ('left_join', parser.JOIN_LEFT),
@@ -32,6 +34,9 @@ def replacements(query: str) -> str:
     return query
 
 def create_relation(input):
+    '''
+    Helper function to massage user input to be able to create relations using the Relational library
+    '''
     placeholder = -1
     for i in range(0, len(input)):
         if input[i]=='}':
@@ -57,10 +62,13 @@ async def execute_query():
     query_text = replacements(query_text)
     input = relation_text.split('\n')
     create_relation(input)
-    
-    pyquery = parser.parse(query_text)
-    result = pyquery(ui.relations)
-    result = result.pretty_string(tty=True)
+    try:
+        pyquery = parser.parse(query_text)
+        result = pyquery(ui.relations)
+        result = result.pretty_string(tty=True)
+    except Exception as e:
+        result = str(e)
+
     # return JSON result
     return jsonify(result), 200, {'Access-Control-Allow-Origin': 'http://localhost:3000'}
 
